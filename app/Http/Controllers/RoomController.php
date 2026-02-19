@@ -31,7 +31,10 @@ class RoomController extends Controller
         }
 
         // Create a new private room
-        $room = Room::create(['type' => 'private']);
+        $room = Room::create([
+            'type' => 'private',
+            'created_by' => $authUser->id,
+        ]);
         $room->members()->attach([
             $authUser->id => ['joined_at' => now()],
             $targetUserId => ['joined_at' => now()],
