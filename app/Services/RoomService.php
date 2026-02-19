@@ -49,6 +49,7 @@ class RoomService
         if ($room->type == 'private') {
             return [
                 'id' => $room->id,
+                'user_id' => $otherUser->id,
                 'type' => $room->type,
                 'name' => $otherUser->name,
                 'avatar' => $otherUser->avatar,
@@ -90,4 +91,21 @@ class RoomService
             return $this->createResponse($user, $room);
         });
     }
+
+    public function getContacts(string $search = null)
+    {
+        return User::where('name', 'like', $search . '%')
+            ->where('id', '!=', Auth::id())
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'type' => 'contact',
+                    'user_id' => $user->id,
+                    'name' => $user->name,
+                    'avatar' => $user->avatar
+                ];
+            });
+    }
+
 }

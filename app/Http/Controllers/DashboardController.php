@@ -9,12 +9,34 @@ use App\Services\RoomService;
 
 class DashboardController extends Controller
 {
-    public function index(RoomService $roomService): Response
+    public function index(RoomService $roomService, Request $request): Response
     {
-        $rooms = $roomService->getRooms();
-        dd($rooms);
-        return Inertia::render('Index', [
-            'rooms' => $rooms,
-        ]);
+        $search = $request->query('search');
+        $data = [
+            'rooms' => [],
+            'contacts' => []
+        ];
+
+        if ($search) {
+            $contacts = $roomService->getContacts($search);
+            $rooms = $roomService->getRooms();
+
+            $roomUserIds = collect($rooms)
+                ->where('type', 'private')
+                ->pluck('user_id')->all();
+
+            $contacts = $contacts
+                ->reject(function ($contacts) use ($roomUserIds) {
+                    return in_array($contacts['user_id'], $roomUserIds);
+                });
+
+            $data['rooms'] = $rooms;
+            $data['contacts'] = $contacts;
+        } else {
+            $rooms = $roomService->getRooms();
+            $data['rooms'] = $rooms;
+        }
+        dd($data);
+        return Inertia::render('Index');
     }
 }
