@@ -14,6 +14,7 @@ class RoomService
         $otherUser = $room->members->first();
         $lastMessage = $room->lastMessage;
         $statusData = [];
+        $countUnread = 0;
         // dd($lastMessage);
 
         $returnLastMessage = [];
@@ -30,7 +31,12 @@ class RoomService
                 });
             } else {
                 // Penerima: Melihat jumlah pesan yang belum dibaca
-                // $statusForOthers = $lastMessage->statusForOthers;
+                $countUnread = $room->messages()
+                    ->whereHas('statuses', function ($query) use ($user) {
+                        $query->where('recipient_id', $user->id)
+                            ->where('status', 'delivered');
+                    })
+                    ->count();
             }
             $returnLastMessage = [
                 'id' => $lastMessage->id,
@@ -46,7 +52,8 @@ class RoomService
                 'type' => $room->type,
                 'name' => $otherUser->name,
                 'avatar' => $otherUser->avatar,
-                'lastMessage' => $returnLastMessage
+                'lastMessage' => $returnLastMessage,
+                'totalUnread' => $countUnread
             ];
         } else if ($room->type == 'group') {
             return [
@@ -54,7 +61,8 @@ class RoomService
                 'type' => $room->type,
                 'name' => $room->name,
                 'avatar' => '',
-                'lastMessage' => $returnLastMessage
+                'lastMessage' => $returnLastMessage,
+                'totalUnread' => $countUnread
             ];
         }
     }
