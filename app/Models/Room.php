@@ -13,4 +13,9 @@ class Room extends Model
             ->withPivot('joined_at');
 
     }
+
+    public function lastMessage()
+    {
+        return $this->hasOne(Message::class)->latestOfMany();
+    }
 }

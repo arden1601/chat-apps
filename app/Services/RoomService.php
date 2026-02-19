@@ -12,12 +12,25 @@ class RoomService
     private function createResponse($user, $room)
     {
         $otherUser = $room->members->first();
+        $lastMessage = $room->lastMessage;
+        // dd($lastMessage);
+
+        $returnLastMessage = [];
+        if ($lastMessage) {
+            $returnLastMessage = [
+                'id' => $lastMessage->id,
+                'type' => $lastMessage->type,
+                'message' => $lastMessage->message,
+                'created_at' => $lastMessage->created_at->toDateTimeString()
+            ];
+        }
         if ($room->type == 'private') {
             return [
                 'id' => $room->id,
                 'type' => $room->type,
                 'name' => $otherUser->name,
                 'avatar' => $otherUser->avatar,
+                'lastMessage' => $returnLastMessage
             ];
         } else if ($room->type == 'group') {
             return [
@@ -25,6 +38,7 @@ class RoomService
                 'type' => $room->type,
                 'name' => $room->name,
                 'avatar' => '',
+                'lastMessage' => $returnLastMessage
             ];
         }
     }
