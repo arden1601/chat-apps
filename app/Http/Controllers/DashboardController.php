@@ -13,7 +13,6 @@ class DashboardController extends Controller
     {
         $rooms = $roomService->getRooms();
 
-        // dd($rooms);
         return Inertia::render('Index', [
             'rooms' => $rooms,
         ]);
