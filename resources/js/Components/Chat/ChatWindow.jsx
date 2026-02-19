@@ -102,7 +102,11 @@ export default function ChatWindow({ room, authUserId, onRoomCreated }) {
                     <p className="text-gray-500 text-sm">Loading messages...</p>
                 </div>
             ) : (
-                <MessageList messages={messages} authUserId={authUserId} />
+                <MessageList
+                    messages={messages}
+                    authUserId={authUserId}
+                    isGroup={room?.type === "group"}
+                />
             )}
             <MessageInput onSend={handleSend} />
         </div>

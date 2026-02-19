@@ -6,7 +6,6 @@ function formatTime(dateString) {
 
 function StatusTicks({ status }) {
     if (!status || status.length === 0) {
-        // Single tick = sent but no status record yet
         return (
             <svg
                 className="w-3.5 h-3.5 text-gray-400 inline"
@@ -35,15 +34,15 @@ function StatusTicks({ status }) {
             strokeLinecap="round"
             strokeLinejoin="round"
         >
-            {/* first tick */}
             <path d="M1 8l4 4L13 4" />
-            {/* second tick shifted */}
             <path d="M7 8l4 4 6-8" />
         </svg>
     );
 }
 
-export default function MessageBubble({ message, isOwn }) {
+export default function MessageBubble({ message, isOwn, isGroup }) {
+    const showSenderName = isGroup && !isOwn;
+
     return (
         <div className={`flex ${isOwn ? "justify-end" : "justify-start"} mb-1`}>
             <div
@@ -53,14 +52,17 @@ export default function MessageBubble({ message, isOwn }) {
                         : "bg-gray-600 text-gray-100 rounded-tl-sm"
                 }`}
             >
+                {showSenderName && (
+                    <p className="text-green-400 text-xs font-semibold mb-1 leading-none">
+                        {message.sender_name}
+                    </p>
+                )}
                 <p className="break-words whitespace-pre-wrap pr-12">
                     {message.message}
                 </p>
                 <span className="absolute bottom-1.5 right-2 flex items-center gap-1 text-xs text-gray-300 whitespace-nowrap">
                     {formatTime(message.created_at)}
-                    {isOwn && (
-                        <StatusTicks status={message.lastMessage?.status} />
-                    )}
+                    {isOwn && <StatusTicks status={message.status} />}
                 </span>
             </div>
         </div>

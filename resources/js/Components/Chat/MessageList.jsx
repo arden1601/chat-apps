@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import MessageBubble from "./MessageBubble";
 
-export default function MessageList({ messages, authUserId }) {
+export default function MessageList({ messages, authUserId, isGroup }) {
     const bottomRef = useRef(null);
 
     useEffect(() => {
@@ -25,6 +25,7 @@ export default function MessageList({ messages, authUserId }) {
                     key={msg.id}
                     message={msg}
                     isOwn={msg.sender_id === authUserId}
+                    isGroup={isGroup}
                 />
             ))}
             <div ref={bottomRef} />

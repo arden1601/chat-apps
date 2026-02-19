@@ -18,6 +18,7 @@ class MessageController extends Controller
 
         $messages = $room->messages()
             ->with([
+                'sender',
                 'statuses' => function ($query) use ($user) {
                     $query->where('recipient_id', '!=', $user->id);
                 }
@@ -28,6 +29,7 @@ class MessageController extends Controller
                 return [
                     'id' => $message->id,
                     'sender_id' => $message->sender_id,
+                    'sender_name' => $message->sender->name,
                     'type' => $message->type,
                     'message' => $message->message,
                     'created_at' => $message->created_at->toDateTimeString(),
@@ -78,6 +80,7 @@ class MessageController extends Controller
         return response()->json([
             'id' => $message->id,
             'sender_id' => $message->sender_id,
+            'sender_name' => $user->name,
             'type' => $message->type,
             'message' => $message->message,
             'created_at' => $message->created_at->toDateTimeString(),
