@@ -5,7 +5,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\Room;
-use function Laravel\Prompts\search;
+
 
 class RoomService
 {
@@ -79,12 +79,16 @@ class RoomService
             ]);
         if ($search) {
             $query->where(function ($q) use ($user, $search) {
-                $q->where('type', 'private')
-                    ->whereHas('members', function ($memberQuery) use ($user, $search) {
-                        $memberQuery->where('user_id', '!=', $user->id)
-                            ->where('name', 'like', '%' . $search . '%');
-                    })
-                    ->orWhere('type', 'group')->where('name', 'like', '%' . $search . '%');
+                $q->where(function ($q2) use ($user, $search) {
+                    $q2->where('type', 'private')
+                        ->whereHas('members', function ($memberQuery) use ($user, $search) {
+                            $memberQuery->where('user_id', '!=', $user->id)
+                                ->where('name', 'like', '%' . $search . '%');
+                        });
+                })->orWhere(function ($q2) use ($search) {
+                    $q2->where('type', 'group')
+                        ->where('name', 'like', '%' . $search . '%');
+                });
             });
         }
         return $query->get()->map(function ($room) use ($user) {
@@ -94,7 +98,7 @@ class RoomService
 
     public function getContacts(string $search = null)
     {
-        return User::where('name', 'like', $search . '%')
+        return User::where('name', 'like', '%' . $search . '%')
             ->where('id', '!=', Auth::id())
             ->get()
             ->map(function ($user) {

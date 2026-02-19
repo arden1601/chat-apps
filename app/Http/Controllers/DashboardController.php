@@ -19,7 +19,7 @@ class DashboardController extends Controller
 
         if ($search) {
             $contacts = $roomService->getContacts($search);
-            $rooms = $roomService->getRooms();
+            $rooms = $roomService->getRooms($search);
 
             $roomUserIds = collect($rooms)
                 ->where('type', 'private')
