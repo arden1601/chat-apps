@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageSent;
 use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -76,6 +77,16 @@ class MessageController extends Controller
                 'status' => 'delivered',
             ]);
         }
+
+        broadcast(new MessageSent([
+            'id' => $message->id,
+            'sender_id' => $message->sender_id,
+            'sender_name' => $user->name,
+            'type' => $message->type,
+            'message' => $message->message,
+            'created_at' => $message->created_at->toDateTimeString(),
+            'status' => [],
+        ], $room->id));
 
         return response()->json([
             'id' => $message->id,
