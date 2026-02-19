@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Room extends Model
 {
+    protected $fillable = ['type', 'name'];
     public function members()
     {
         return $this->belongsToMany(User::class, 'room_user')
