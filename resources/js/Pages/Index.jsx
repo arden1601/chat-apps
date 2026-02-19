@@ -1,26 +1,29 @@
-import Settings from "@/Components/Settings";
+import ChatWindow from "@/Components/Chat/ChatWindow";
+import Sidebar from "@/Components/Chat/Sidebar";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head, Link } from "@inertiajs/react";
-export default function Welcome({ auth }) {
+import { Head } from "@inertiajs/react";
+import { useState } from "react";
+
+export default function Index({ auth, data, search }) {
+    const [activeRoom, setActiveRoom] = useState(null);
+
     return (
         <AuthenticatedLayout>
-            <Head title="Welcome" />
-            <div className="flex h-screen">
-                <div className="w-2/6 bg-gray-500 border-r border-gray-800">
-                    <div className="px-4 flex flex-col">
-                        <div className="flex justify-between mb-2">
-                            <h1 className="text-white text-xl font-bold">
-                                Chat APPPS
-                            </h1>
-                            <div className="">
-                                <Settings />
-                            </div>
-                        </div>
-                        <div># SEARCH #</div>
-                    </div>
-                    <div className="flex-1 px-4 overflow-y-auto"># ROOM #</div>
+            <Head title="Chat Apps" />
+            <div className="flex h-screen overflow-hidden">
+                {/* Sidebar — fixed width */}
+                <div className="w-80 flex-shrink-0 flex flex-col h-full">
+                    <Sidebar
+                        data={data}
+                        search={search}
+                        activeRoom={activeRoom}
+                        onSelect={setActiveRoom}
+                        authUserId={auth?.user?.id}
+                    />
                 </div>
-                <div className="relative w-4/6 bg-gray-400"># CHAT #</div>
+
+                {/* Chat window — fills remaining space */}
+                <ChatWindow room={activeRoom} authUserId={auth?.user?.id} />
             </div>
         </AuthenticatedLayout>
     );

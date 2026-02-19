@@ -36,7 +36,9 @@ class DashboardController extends Controller
             $rooms = $roomService->getRooms();
             $data['rooms'] = $rooms;
         }
-        dd($data);
-        return Inertia::render('Index');
+        return Inertia::render('Index', [
+            'data' => $data,
+            'search' => $search
+        ]);
     }
 }
