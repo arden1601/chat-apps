@@ -13,15 +13,31 @@ class RoomService
     {
         $otherUser = $room->members->first();
         $lastMessage = $room->lastMessage;
+        $statusData = [];
         // dd($lastMessage);
 
         $returnLastMessage = [];
         if ($lastMessage) {
+            // dd($lastMessage->statusForOthers()->get());
+            if ($lastMessage->sender_id == $user->id) {
+                // Pengirim: Melihat status pesan dibaca atau belum 
+                $statusData = $lastMessage->statusForOthers->map(function ($status) {
+                    return [
+                        'receiver' => $status->recipient_id,
+                        'status' => $status->status,
+                        'read_at' => $status->read_at ? $status->read_at->toDateTimeString() : null
+                    ];
+                });
+            } else {
+                // Penerima: Melihat jumlah pesan yang belum dibaca
+                // $statusForOthers = $lastMessage->statusForOthers;
+            }
             $returnLastMessage = [
                 'id' => $lastMessage->id,
                 'type' => $lastMessage->type,
                 'message' => $lastMessage->message,
-                'created_at' => $lastMessage->created_at->toDateTimeString()
+                'created_at' => $lastMessage->created_at->toDateTimeString(),
+                'status' => $statusData
             ];
         }
         if ($room->type == 'private') {
