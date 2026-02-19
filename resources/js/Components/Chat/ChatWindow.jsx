@@ -1,10 +1,25 @@
-import { useState } from "react";
+import axios from "axios";
+import { useEffect, useState } from "react";
 import ChatHeader from "./ChatHeader";
 import MessageInput from "./MessageInput";
 import MessageList from "./MessageList";
 
-export default function ChatWindow({ room, authUserId }) {
+export default function ChatWindow({ room, authUserId, onRoomCreated }) {
     const [messages, setMessages] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (!room || room.type === "contact") {
+            setMessages([]);
+            return;
+        }
+        setLoading(true);
+        axios
+            .get(`/rooms/${room.id}/messages`)
+            .then((res) => setMessages(res.data))
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    }, [room?.id, room?.type]);
 
     if (!room) {
         return (
@@ -36,23 +51,59 @@ export default function ChatWindow({ room, authUserId }) {
         );
     }
 
-    const handleSend = (text) => {
-        // Optimistic local message — real sending handled later with WebSockets
-        const newMsg = {
-            id: Date.now(),
+    const handleSend = async (text) => {
+        let targetRoom = room;
+
+        // If this is a contact (no room yet), create the private room first
+        if (room.type === "contact") {
+            try {
+                const res = await axios.post("/rooms/private", {
+                    user_id: room.user_id,
+                });
+                targetRoom = { ...room, id: res.data.room_id, type: "private" };
+                onRoomCreated?.(targetRoom);
+            } catch (e) {
+                console.error(e);
+                return;
+            }
+        }
+
+        // Optimistic UI — append immediately with a temp id
+        const tempId = `temp-${Date.now()}`;
+        const optimistic = {
+            id: tempId,
             message: text,
             sender_id: authUserId,
             created_at: new Date().toISOString(),
             type: "text",
             status: [],
         };
-        setMessages((prev) => [...prev, newMsg]);
+        setMessages((prev) => [...prev, optimistic]);
+
+        axios
+            .post(`/rooms/${targetRoom.id}/messages`, { message: text })
+            .then((res) => {
+                // Replace the optimistic entry with the confirmed server response
+                setMessages((prev) =>
+                    prev.map((m) => (m.id === tempId ? res.data : m)),
+                );
+            })
+            .catch(() => {
+                // Remove the optimistic entry on failure
+                setMessages((prev) => prev.filter((m) => m.id !== tempId));
+            });
     };
 
     return (
         <div className="flex-1 flex flex-col bg-gray-800 min-w-0">
             <ChatHeader room={room} />
-            <MessageList messages={messages} authUserId={authUserId} />
+            {loading ? (
+                <div className="flex-1 flex items-center justify-center">
+                    <p className="text-gray-500 text-sm">Loading messages...</p>
+                </div>
+            ) : (
+                <MessageList messages={messages} authUserId={authUserId} />
+            )}
             <MessageInput onSend={handleSend} />
         </div>
     );

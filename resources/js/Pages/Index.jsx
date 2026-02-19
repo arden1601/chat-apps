@@ -23,7 +23,11 @@ export default function Index({ auth, data, search }) {
                 </div>
 
                 {/* Chat window — fills remaining space */}
-                <ChatWindow room={activeRoom} authUserId={auth?.user?.id} />
+                <ChatWindow
+                    room={activeRoom}
+                    authUserId={auth?.user?.id}
+                    onRoomCreated={(newRoom) => setActiveRoom(newRoom)}
+                />
             </div>
         </AuthenticatedLayout>
     );
