@@ -13,12 +13,32 @@ export default function ChatWindow({ room, authUserId, onRoomCreated }) {
             setMessages([]);
             return;
         }
+
         setLoading(true);
         axios
             .get(`/rooms/${room.id}/messages`)
-            .then((res) => setMessages(res.data))
+            .then((res) => {
+                setMessages(res.data);
+                // Mark messages as read when opening the room
+                axios.post(`/rooms/${room.id}/read`).catch(() => {});
+            })
             .catch(console.error)
             .finally(() => setLoading(false));
+
+        // Subscribe to the private channel for real-time messages
+        const channel = window.Echo.private(`room.${room.id}`);
+        channel.listen(".message.sent", (e) => {
+            // Only append if not sent by us (we already appended optimistically)
+            if (e.message.sender_id !== authUserId) {
+                setMessages((prev) => [...prev, e.message]);
+                // Mark as read since we're actively in this room
+                axios.post(`/rooms/${room.id}/read`).catch(() => {});
+            }
+        });
+
+        return () => {
+            window.Echo.leave(`room.${room.id}`);
+        };
     }, [room?.id, room?.type]);
 
     if (!room) {
@@ -74,6 +94,7 @@ export default function ChatWindow({ room, authUserId, onRoomCreated }) {
             id: tempId,
             message: text,
             sender_id: authUserId,
+            sender_name: null,
             created_at: new Date().toISOString(),
             type: "text",
             status: [],
@@ -83,13 +104,11 @@ export default function ChatWindow({ room, authUserId, onRoomCreated }) {
         axios
             .post(`/rooms/${targetRoom.id}/messages`, { message: text })
             .then((res) => {
-                // Replace the optimistic entry with the confirmed server response
                 setMessages((prev) =>
                     prev.map((m) => (m.id === tempId ? res.data : m)),
                 );
             })
             .catch(() => {
-                // Remove the optimistic entry on failure
                 setMessages((prev) => prev.filter((m) => m.id !== tempId));
             });
     };
