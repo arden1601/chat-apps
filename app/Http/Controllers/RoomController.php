@@ -42,4 +42,37 @@ class RoomController extends Controller
 
         return response()->json(['room_id' => $room->id], 201);
     }
+
+    /**
+     * Create a new group room with the given name and members.
+     */
+    public function storeGroup(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'user_ids' => ['required', 'array', 'min:1'],
+            'user_ids.*' => ['exists:users,id'],
+        ]);
+
+        $authUser = Auth::user();
+
+        $room = Room::create([
+            'type' => 'group',
+            'name' => $validated['name'],
+            'created_by' => $authUser->id,
+        ]);
+
+        // Add creator + selected members, deduplicating in case creator is in the list
+        $memberIds = array_unique(array_merge([$authUser->id], $validated['user_ids']));
+        $pivotData = collect($memberIds)
+            ->mapWithKeys(fn($id) => [$id => ['joined_at' => now()]])
+            ->all();
+        $room->members()->attach($pivotData);
+
+        return response()->json([
+            'id' => $room->id,
+            'type' => 'group',
+            'name' => $room->name,
+        ], 201);
+    }
 }

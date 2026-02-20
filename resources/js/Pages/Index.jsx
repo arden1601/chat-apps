@@ -19,6 +19,9 @@ export default function Index({ auth, data, search }) {
                         activeRoom={activeRoom}
                         onSelect={setActiveRoom}
                         authUserId={auth?.user?.id}
+                        onGroupCreated={(room) =>
+                            setActiveRoom({ ...room, avatar: null })
+                        }
                     />
                 </div>
 
