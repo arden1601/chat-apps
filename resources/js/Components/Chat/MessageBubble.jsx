@@ -46,21 +46,21 @@ export default function MessageBubble({ message, isOwn, isGroup }) {
     return (
         <div className={`flex ${isOwn ? "justify-end" : "justify-start"} mb-1`}>
             <div
-                className={`relative max-w-xs lg:max-w-md px-3 py-2 rounded-2xl text-sm leading-relaxed ${
+                className={`relative flex flex-col justify-evenly max-w-xs lg:max-w-md px-3 ${showSenderName ? "pb-2 pt-6" : "py-4"} rounded-2xl text-sm leading-relaxed ${
                     isOwn
                         ? "bg-green-700 text-gray-100 rounded-tr-sm"
                         : "bg-gray-600 text-gray-100 rounded-tl-sm"
                 }`}
             >
                 {showSenderName && (
-                    <p className="text-green-400 text-xs font-semibold mb-1 leading-none">
+                    <p className="absolute top-2 left-2 text-green-400 text-xs font-semibold mb-1 leading-none">
                         {message.sender_name}
                     </p>
                 )}
                 <p className="break-words whitespace-pre-wrap pr-12">
                     {message.message}
                 </p>
-                <span className="absolute bottom-1.5 right-2 flex items-center gap-1 text-xs text-gray-300 whitespace-nowrap">
+                <span className="flex items-center gap-1 text-xs text-gray-300 whitespace-nowrap">
                     {formatTime(message.created_at)}
                     {isOwn && <StatusTicks status={message.status} />}
                 </span>
